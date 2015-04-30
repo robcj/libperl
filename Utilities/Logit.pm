@@ -40,7 +40,7 @@ e.g.
 =head1 EXPORT
 
  Default Exports:
- setLogging logcrit loginfo logwarn logdebug abort logEndSub logcaller logstack
+ setLogging getLogFH logcrit loginfo logwarn logdebug abort logEndSub logcaller logstack
  
  Optional Exports:
  get_datetime
@@ -51,7 +51,7 @@ require Exporter;
 
 our @ISA    = qw(Exporter);
 our @EXPORT =
-  qw(setLogging logcrit loginfo logwarn logdebug abort logEndSub logcaller logstack);
+  qw(setLogging getLogFH logcrit loginfo logwarn logdebug abort logEndSub logcaller logstack);
 our @EXPORT_OK = qw(get_datetime);
 
 =head1 GLOBAL VARIABLES
