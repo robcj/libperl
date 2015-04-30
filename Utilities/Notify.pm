@@ -5,6 +5,7 @@ use strict;
 use warnings FATAL => 'all';
 use Utilities::perlUtils 1.514;
 use Utilities::perlUtils 1.514 qw(flattenToArrayRef definedToArray sendEmail flattenDefined listContains);
+use Utilities::perlUtils 1.515 qw(:OSUtils);
 use File::Basename;
 
 =head1 NAME
@@ -13,11 +14,11 @@ Utilities::Notify - For accumulating and sending of notification and alert messa
 
 =head1 VERSION
 
-Version 0.09
+Version 0.11
 
 =cut
 
-our $VERSION = '0.09';
+our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 
@@ -76,8 +77,22 @@ sub new {
 	bless( $self, $class );    # Bestow objecthood
 	$self->{alertEmailsTo}        = [];
 	$self->{notificationEmailsTo} = [];
-
+	$self->{logFH}                = devnullFH();
 	return $self;
+}
+
+=head2 setLoggingFH
+ 
+ Parameters  : open writeable filehandle
+ Returns     : 
+ Description : Sets the logging filehandle so that logging can be written somewhere (otherwise it defaults to /dev/null or NUL)
+
+=cut
+
+sub setLoggingFH {
+	my $self = shift;
+	close $self->{logFH} if $self->{logFH};
+	$self->{logFH} = shift;
 }
 
 =head2 getset
@@ -459,9 +474,9 @@ sub sendAlerts {
 
 	my $addr = flatten( ",", $self->alertEmailsTo );
 	my $header = {
-		Subject => $subject,
-		To      => $self->alertEmailsTo,
-		From    => $self->emailFrom,
+		Subject => $subject || "Alerts",
+		To   => $self->alertEmailsTo,
+		From => $self->emailFrom,
 
 		#"Content-Type" => "text/html"
 	};
@@ -473,6 +488,7 @@ sub sendAlerts {
 		"From: " . $header->{From}, $body
 	);
 
+	say {$self->{logFH}} "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
 	if ( sendEmail( $header, $body, $self->mailserver, 'smtp' ) ) {
 		$self->recordLastTimes("alerts");
 	}
@@ -509,9 +525,9 @@ sub sendNotifications {
 	my $body = flatten( eol(), $upper, @messages, $lower );
 
 	my $header = {
-		Subject => $subject,
-		To      => $self->notificationEmailsTo,
-		From    => $self->emailFrom,
+		Subject => $subject || "Notifications",
+		To   => $self->notificationEmailsTo,
+		From => $self->emailFrom,
 
 		#"Content-Type" => "text/html"
 	};
@@ -521,6 +537,9 @@ sub sendNotifications {
 		"To: " . flatten( ",", $header->{To} ),
 		"From: " . $header->{From}, $body
 	);
+
+	say {$self->{logFH}} "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
+
 	if ( sendEmail( $header, $body, $self->mailserver, 'smtp' ) ) {
 		$self->recordLastTimes("notifications");
 	}
@@ -669,3 +688,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =cut
 
 1;    # End of Utilities::Notify
+

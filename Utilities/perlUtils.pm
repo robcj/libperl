@@ -11,11 +11,11 @@ Utilities::perlUtils - Useful utility subroutines.
 
 =head1 VERSION
 
-Version 1.514
+Version 1.515
 
 =cut
 
-our $VERSION = '1.514';
+our $VERSION = '1.515';
 $VERSION = eval $VERSION;
 
 =head1 SYNOPSIS
@@ -60,7 +60,7 @@ our %EXPORT_TAGS = (
 		  listIntersect listIntersectMatch listContains listComplement
 		  hasContent definedToArray lcHashKeys)
 	],
-	OSUtils => [qw(os isWindows isLinux eol)]
+	OSUtils => [qw(os isWindows isLinux eol devnull devnullFH)]
 );
 
 Exporter::export_ok_tags( 'DateUtils', 'ListUtils' );
@@ -116,10 +116,39 @@ sub isLinux {
 =cut
 
 sub eol {
-	return "\n";
 	if    (isWindows) { return "\n\r" }
 	elsif (isLinux)   { return "\n" }
 	else { return "\n" }
+}
+
+=head2 devnull 
+
+ Parameters  :
+ Returns     : null file name for local OS.
+ Description : Returns the appropriate null file for the local OS.
+               Currently "NUL" for windows, "/dev/null" for anything else.
+
+=cut
+
+sub devnull {	
+	if    (isWindows) { return "NUL" }
+	else { return "/dev/null" }
+}
+
+=head2 devnullFH
+
+ Parameters  :
+ Returns     : null file file-handle ref for local OS.
+ Description : Returns the appropriate null file file-handle ref for the local OS.
+               Currently "NUL" for windows, "/dev/null" for anything else.
+
+=cut
+
+sub devnullFH {	
+	my $fh;
+	my $null = devnull;
+	open $fh, "<", $null or die "Unable to open null file file-handle '$null'.";
+	return $fh;
 }
 
 =head2 isModule
@@ -927,4 +956,5 @@ sub timeCalc {
 #########
 1;
 __END__
+
 

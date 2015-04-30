@@ -14,11 +14,11 @@ Utilities::Logit - Module providing simple Logging facilities
 
 =head1 VERSION
 
-Version 2.002
+Version 2.003
 
 =cut
 
-our $VERSION = 2.002;
+our $VERSION = 2.003;
 $VERSION = eval $VERSION;
 
 =head1 SYNOPSIS
@@ -70,6 +70,16 @@ my $logfh = *STDOUT;
 my $loglevel = 0;
 
 =head1 SUBROUTINES
+
+=head2 getLogFH
+
+ Parameters  : 
+ Returns     : filehandle
+ Description : Returns the current $logfh filehandle.
+ 
+=cut
+
+sub getLogFH { $logfh }
 
 =head2 setLogging
 
@@ -361,3 +371,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =cut
 
 1;    # End of Utilities::Logit
+
