@@ -469,7 +469,10 @@ sub sendAlerts {
 
 	my @messages = $self->getMessagesToSend("alerts");
 
-	return 0 unless @messages;
+	unless (@messages) {
+		say { $self->{logFH} } "No messages to send.";
+		return 0;
+	}
 	my $body = flattenDefined( eol(), $upper, @messages, $lower );
 
 	my $addr = flatten( ",", $self->alertEmailsTo );
@@ -488,7 +491,8 @@ sub sendAlerts {
 		"From: " . $header->{From}, $body
 	);
 
-	say {$self->{logFH}} "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
+	say { $self->{logFH} } "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
+
 	if ( sendEmail( $header, $body, $self->mailserver, 'smtp' ) ) {
 		$self->recordLastTimes("alerts");
 	}
@@ -519,7 +523,11 @@ sub sendNotifications {
 	my @messages = $self->getMessagesToSend("notifications");
 	push @messages, $self->getMessagesToSend("alerts")
 	  if $self->alertsWithNotifications;
-	return 0 unless @messages;
+
+	unless (@messages) {
+		say { $self->{logFH} } "No messages to send.";
+		return 0;
+	}
 
 	@messages = definedToArray(@messages);
 	my $body = flatten( eol(), $upper, @messages, $lower );
@@ -538,7 +546,7 @@ sub sendNotifications {
 		"From: " . $header->{From}, $body
 	);
 
-	say {$self->{logFH}} "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
+	say { $self->{logFH} } "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
 
 	if ( sendEmail( $header, $body, $self->mailserver, 'smtp' ) ) {
 		$self->recordLastTimes("notifications");
@@ -585,8 +593,7 @@ sub getMessagesToSend {
 
 		if ( @newmsgs && $diff > $self->minInterval ) {
 			push( @messages, @newmsgs );
-		}
-		$iref->{lastTime} = time;
+		}		
 	}
 	@messages;
 }

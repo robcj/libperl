@@ -40,7 +40,7 @@ e.g.
 =head1 EXPORT
 
  Default Exports:
- setLogging getLogFH logcrit loginfo logwarn logdebug abort logEndSub logcaller logstack
+ setLogging logcrit loginfo logwarn logdebug abort logEndSub logcaller logstack
  
  Optional Exports:
  get_datetime
