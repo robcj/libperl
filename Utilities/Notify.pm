@@ -145,6 +145,20 @@ sub alertEmailsTo {
 	$self->{alertEmailsTo};
 }
 
+=head2 alertEmailsTo
+ 
+ Parameters  : List of alert email addresses
+ Returns     : arrayref of alert email addresses
+ Description : getter/setter
+
+=cut
+
+sub alertIdEmailsTo {
+	my ( $self, $id, @emails ) = @_;
+	$self->{alertIdEmailsTo}->{$id} = flattenToArrayRef(@emails) if @emails;
+	$self->{alertIdEmailsTo}->{$id};
+}
+
 =head2 notificationEmailsTo
  
  Parameters  : List of notification email addresses
@@ -202,7 +216,7 @@ sub emailFrom {
 		my $hostname =
 		    $ENV{HOSTNAME}     ? $ENV{HOSTNAME}
 		  : $ENV{COMPUTERNAME} ? $ENV{COMPUTERNAME}
-		  : "mycomputer";
+		  :                      "mycomputer";
 		$_[0]->{emailFrom} = 'notifications@' . $hostname;
 	}
 	$_[0]->{emailFrom};
@@ -478,18 +492,14 @@ sub sendAlerts {
 	my $addr = flatten( ",", $self->alertEmailsTo );
 	my $header = {
 		Subject => $subject || "Alerts",
-		To   => $self->alertEmailsTo,
-		From => $self->emailFrom,
+		To      => $self->alertEmailsTo,
+		From    => $self->emailFrom,
 
 		#"Content-Type" => "text/html"
 	};
 
-	my $summary = join(
-		eol(),
-		"Mailserver: " . $self->mailserver,
-		"To: " . flatten( ",", $header->{To} ),
-		"From: " . $header->{From}, $body
-	);
+	my $summary =
+	  join( eol(), "Mailserver: " . $self->mailserver, "To: " . flatten( ",", $header->{To} ), "From: " . $header->{From}, $body );
 
 	say { $self->{logFH} } "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
 
@@ -497,7 +507,7 @@ sub sendAlerts {
 		$self->recordLastTimes("alerts");
 	}
 	else {
-		die $!;
+		die $@;
 	}
 	$summary;
 }
@@ -534,17 +544,13 @@ sub sendNotifications {
 
 	my $header = {
 		Subject => $subject || "Notifications",
-		To   => $self->notificationEmailsTo,
-		From => $self->emailFrom,
+		To      => $self->notificationEmailsTo,
+		From    => $self->emailFrom,
 
 		#"Content-Type" => "text/html"
 	};
-	my $summary = join(
-		eol(),
-		"Mailserver: " . $self->mailserver,
-		"To: " . flatten( ",", $header->{To} ),
-		"From: " . $header->{From}, $body
-	);
+	my $summary =
+	  join( eol(), "Mailserver: " . $self->mailserver, "To: " . flatten( ",", $header->{To} ), "From: " . $header->{From}, $body );
 
 	say { $self->{logFH} } "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
 
@@ -593,7 +599,7 @@ sub getMessagesToSend {
 
 		if ( @newmsgs && $diff > $self->minInterval ) {
 			push( @messages, @newmsgs );
-		}		
+		}
 	}
 	@messages;
 }
@@ -695,4 +701,3 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =cut
 
 1;    # End of Utilities::Notify
-

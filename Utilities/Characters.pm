@@ -11,7 +11,7 @@ Utilities::Characters - Useful utility subroutines for dealing with special char
 
 =head1 VERSION
 
-Version 1.000
+Version 1.001
 
 =cut
 

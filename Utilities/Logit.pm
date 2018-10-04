@@ -3,7 +3,7 @@ package Utilities::Logit;
 
 use 5.006;
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 use Utilities::perlUtils 1.5;
 use Utilities::perlUtils 1.5 qw(stacktrace);
 use feature 'say';
@@ -14,11 +14,11 @@ Utilities::Logit - Module providing simple Logging facilities
 
 =head1 VERSION
 
-Version 2.003
+Version 2.004
 
 =cut
 
-our $VERSION = 2.003;
+our $VERSION = 2.004;
 $VERSION = eval $VERSION;
 
 =head1 SYNOPSIS
@@ -49,7 +49,7 @@ e.g.
 
 require Exporter;
 
-our @ISA    = qw(Exporter);
+our @ISA = qw(Exporter);
 our @EXPORT =
   qw(setLogging getLogFH logcrit loginfo logwarn logdebug abort logEndSub logcaller logstack);
 our @EXPORT_OK = qw(get_datetime);
@@ -66,7 +66,7 @@ our @EXPORT_OK = qw(get_datetime);
  
 =cut
 
-my $logfh = *STDOUT;
+my $logfh    = *STDOUT;
 my $loglevel = 0;
 
 =head1 SUBROUTINES
@@ -95,6 +95,7 @@ sub getLogFH { $logfh }
 
 sub setLogging {
 	my ( $level, $logfile ) = @_;
+
 	# Set default log level to info and logfile to STDOUT
 	$level   = 'info'   unless ($level);
 	$logfile = 'STDOUT' unless ($logfile);
@@ -117,7 +118,8 @@ sub setLogging {
 		$loglevel++;
 		last if ( $level =~ /$name/i );
 	}
-	loginfo("Logging level set to $loglevel, $level.  Writing log to: $logfile.");
+	loginfo(
+		"Logging level set to $loglevel, $level.  Writing log to: $logfile.");
 
 }
 
@@ -281,7 +283,7 @@ sub get_datetime {
 
 	$mon = $mon + 1;
 	my $yyyy = $year + 1900;
-	my $yy   = sprintf( "%02d", $year % 100 );
+	my $yy = sprintf( "%02d", $year % 100 );
 
 	if ( $format eq "pgformat" ) {
 
@@ -371,4 +373,3 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =cut
 
 1;    # End of Utilities::Logit
-

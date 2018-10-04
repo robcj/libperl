@@ -15,7 +15,7 @@ Version 1.515
 
 =cut
 
-our $VERSION = '1.515';
+our $VERSION = '1.516';
 $VERSION = eval $VERSION;
 
 =head1 SYNOPSIS
@@ -48,8 +48,9 @@ $VERSION = eval $VERSION;
 
 require Exporter;
 
-our @ISA       = qw(Exporter);
-our @EXPORT    = qw( eol isModule getCaller isArray unique say_ sayErr flatten joinPaths);
+our @ISA = qw(Exporter);
+our @EXPORT =
+  qw( eol isModule getCaller isArray unique say_ sayErr flatten joinPaths);
 our @EXPORT_OK = qw(sendEmail help say loadConfig loadBasicConfig stacktrace );
 
 our %EXPORT_TAGS = (
@@ -116,9 +117,9 @@ sub isLinux {
 =cut
 
 sub eol {
-	if    (isWindows) { return "\n\r" }
+	if    (isWindows) { return "\r\n" }
 	elsif (isLinux)   { return "\n" }
-	else { return "\n" }
+	else              { return "\n" }
 }
 
 =head2 devnull 
@@ -130,9 +131,9 @@ sub eol {
 
 =cut
 
-sub devnull {	
-	if    (isWindows) { return "NUL" }
-	else { return "/dev/null" }
+sub devnull {
+	if   (isWindows) { return "NUL" }
+	else             { return "/dev/null" }
 }
 
 =head2 devnullFH
@@ -144,7 +145,7 @@ sub devnull {
 
 =cut
 
-sub devnullFH {	
+sub devnullFH {
 	my $fh;
 	my $null = devnull;
 	open $fh, "<", $null or die "Unable to open null file file-handle '$null'.";
@@ -195,8 +196,13 @@ sub getCaller {
 sub stacktrace {
 	my ($frame) = @_ ? $_[0] + 1 : 1;
 	my @frames;
-	while ( my ( $package, $filename, $line, $subname, $hasargs, $wantarray, $evaltext, $isrequire ) =
-		caller( $frame++ ) )
+	while (
+		my (
+			$package, $filename,  $line,     $subname,
+			$hasargs, $wantarray, $evaltext, $isrequire
+		)
+		= caller( $frame++ )
+	  )
 	{
 		my $msg = "Frame: $frame Pkg: $package ; File: $filename ; Line: $line";
 		$msg .= " ; Sub: $subname "       if $subname;
@@ -336,8 +342,8 @@ sub loadConfig {
 		Config::Simple->import_from( $file, $hashref )
 		  or return "Failed to read config $file: " . Config::Simple->error();
 
-		# Config Simple uses .ini style blocks, we aren't using any so it prepends
-		# 'default' to each key name.  We will remove that unless defaultprefix option is set:
+# Config Simple uses .ini style blocks, we aren't using any so it prepends
+# 'default' to each key name.  We will remove that unless defaultprefix option is set:
 		if (   !exists( $options->{defaultprefix} )
 			|| !$options->{defaultprefix} )
 		{
@@ -643,7 +649,7 @@ sub hasContent {
 			for (@$_) { $count += hasContent($_) if $_ }
 		}
 		elsif ( ref($_) eq "HASH" ) { $count += hasContent( [ values %$_ ] ) }
-		else { $count++ if $_ }
+		else                        { $count++ if $_ }
 	}
 	return $count;
 }
@@ -708,7 +714,8 @@ sub listComplement {
 sub listIntersect {
 	my $listrefA = shift @_;
 	while ( my $listrefB = shift @_ ) {
-		$listrefA = [ grep ${ { map { $_, 1 } @{$listrefB} } }{$_}, @{$listrefA} ];
+		$listrefA =
+		  [ grep ${ { map { $_, 1 } @{$listrefB} } }{$_}, @{$listrefA} ];
 	}
 	@{$listrefA};
 }
@@ -770,16 +777,13 @@ sub sendEmail {
 	}
 
 	my $fh = $mailer->open($headref);
-	unless ($fh) { $@ .= "Failed to create the mail (open())"; return 0 }
+	die "Failed to create the mail (open())" unless ($fh);
 
 	print $fh $body;
 
 	# send and close
-
-	unless ( $fh->close ) {
-		$@ .= "Failed to send and close the mail (close())";
-		return -1;
-	}
+	die "Failed to send and close the mail (close())"
+	  unless ( $fh->close );
 	1;
 }
 
@@ -812,7 +816,8 @@ sub help {
 =cut
 
 sub dateToSec {
-	return "You need to install the Date::Parse module to use the dateToSec function."
+	return
+"You need to install the Date::Parse module to use the dateToSec function."
 	  unless ( isModule("Date::Parse") );
 	my $date = shift;
 
@@ -837,7 +842,7 @@ sub dateToSec {
 	}
 	elsif ( $date =~ /^\d+$/ ) {
 
-		# purely numeric date supplied, so we'll assume it's seconds since the epoch.
+   # purely numeric date supplied, so we'll assume it's seconds since the epoch.
 		$epoch = $date;
 	}
 	else {
@@ -873,20 +878,25 @@ sub dateToSec {
 =cut
 
 sub dateFormat {
-	return "You need to install the Date::Format module to use the dateFormat function."
+	return
+"You need to install the Date::Format module to use the dateFormat function."
 	  unless ( isModule("Date::Format") );
 	my ( $date, $format ) = @_;
 	my $epoch = $date ? dateToSec($date) : time;
 	my @formats = (
-		"%Y-%m-%d %H:%M:%S", "%d-%m-%Y %H:%M",    "%Y-%m-%d %H:%M", "%Y-%m-%d",
-		"%Y-%m-%d-%H-%M",    "%Y-%m-%d-%H-%M-%S", "%Y%m%d%H%M%S",   "%H:%M:%S",
+		"%Y-%m-%d %H:%M:%S", "%d-%m-%Y %H:%M",
+		"%Y-%m-%d %H:%M",    "%Y-%m-%d",
+		"%Y-%m-%d-%H-%M",    "%Y-%m-%d-%H-%M-%S",
+		"%Y%m%d%H%M%S",      "%H:%M:%S",
 		"%H%M%S",
 	);
 
 	if ( !$format ) { $format = $formats[0] }
 
 	my $formatted;
-	if ( $format =~ /^\d$/ ) { $formatted = time2str( $formats[$format], $epoch ) }
+	if ( $format =~ /^\d$/ ) {
+		$formatted = time2str( $formats[$format], $epoch );
+	}
 	elsif ( $format =~ /^julian$/i ) { $formatted = toJulian($epoch) }
 	else { $formatted = time2str( $format, $epoch ); }
 
@@ -956,5 +966,4 @@ sub timeCalc {
 #########
 1;
 __END__
-
 
