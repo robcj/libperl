@@ -11,11 +11,11 @@ Utilities::perlUtils - Useful utility subroutines.
 
 =head1 VERSION
 
-Version 1.515
+Version 1.517
 
 =cut
 
-our $VERSION = '1.516';
+our $VERSION = '1.517';
 $VERSION = eval $VERSION;
 
 =head1 SYNOPSIS
@@ -400,8 +400,9 @@ sub loadBasicConfig {
 	while (<CONFIG>) {
 		next if (/^\s*#|^\s*$/);
 		chomp;
+		s/\r//g;
 		my ( $key, $value );
-		if (/^\s*(\w+)\s*=\s*(\S.*\S?)\s*$/) {
+		if (/^\s*(\w+)\s*=\s*(.*\S)\s*$/) {
 			( $key, $value ) = ( $1, $2 );
 		}
 		elsif (/^\s*(\w+)\s*=\s*$/) {
