@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 package Utilities::Logit;
 
+use lib qw( . .. ../lib ../libperl ../../libperl );
 use 5.006;
 use strict;
 use warnings;

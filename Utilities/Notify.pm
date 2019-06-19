@@ -1,10 +1,13 @@
-package Utilities::Notify;
+#!/usr/bin/perl
 
+package Utilities::Notify;
+use lib qw( . .. );
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
 use Utilities::perlUtils 1.514;
-use Utilities::perlUtils 1.514 qw(flattenToArrayRef definedToArray sendEmail flattenDefined listContains);
+use Utilities::perlUtils 1.514
+  qw(flattenToArrayRef definedToArray sendEmail flattenDefined listContains);
 use Utilities::perlUtils 1.515 qw(:OSUtils);
 use File::Basename;
 
@@ -14,11 +17,11 @@ Utilities::Notify - For accumulating and sending of notification and alert messa
 
 =head1 VERSION
 
-Version 0.11
+Version 0.12
 
 =cut
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 =head1 SYNOPSIS
 
@@ -214,7 +217,7 @@ sub emailFrom {
 	if ( $_[1] ) { $_[0]->{emailFrom} = $_[1] }
 	elsif ( !$_[0]->{emailFrom} ) {
 		my $hostname =
-		    $ENV{HOSTNAME}     ? $ENV{HOSTNAME}
+			$ENV{HOSTNAME}     ? $ENV{HOSTNAME}
 		  : $ENV{COMPUTERNAME} ? $ENV{COMPUTERNAME}
 		  :                      "mycomputer";
 		$_[0]->{emailFrom} = 'notifications@' . $hostname;
@@ -333,7 +336,8 @@ sub recordLastTimes {
 		my $file = $self->lastTimeStore . ".$type";
 		open my $fh, ">", $file or return 0;
 		next unless ref( $self->{$type} ) eq "HASH";
-		for my $id ( keys $self->{$type} ) {
+		my %types = %{$self->{$type}};
+		for my $id ( keys %types ) {
 			my $lastTime = $self->lastTime( $type, $id );
 			$lastTime = time unless $lastTime;
 			my $line = join( ',', $lastTime, $type, $id ) . eol();
@@ -362,7 +366,7 @@ sub loadLastTimes {
 		my $file = $self->lastTimeStore . ".$type";
 		next unless -f $file;
 		open my $fh, "<", $file or return 0;
-		my $intvl = $self->minInterval || 0;
+		my $intvl   = $self->minInterval || 0;
 		my $maxtime = time - $intvl;
 		while ( my $line = <$fh> ) {
 			chomp $line;
@@ -370,7 +374,7 @@ sub loadLastTimes {
 			my ( $last, $type, $id ) = ( $1, $2, $3 );
 			if ( $last >= $maxtime ) {
 
-				# Only keep the messages that were sent within the min interval period
+		  # Only keep the messages that were sent within the min interval period
 				$self->lastTime( $type, $id, $last );
 			}
 		}
@@ -489,7 +493,7 @@ sub sendAlerts {
 	}
 	my $body = flattenDefined( eol(), $upper, @messages, $lower );
 
-	my $addr = flatten( ",", $self->alertEmailsTo );
+	my $addr   = flatten( ",", $self->alertEmailsTo );
 	my $header = {
 		Subject => $subject || "Alerts",
 		To      => $self->alertEmailsTo,
@@ -498,10 +502,15 @@ sub sendAlerts {
 		#"Content-Type" => "text/html"
 	};
 
-	my $summary =
-	  join( eol(), "Mailserver: " . $self->mailserver, "To: " . flatten( ",", $header->{To} ), "From: " . $header->{From}, $body );
+	my $summary = join(
+		eol(),
+		"Mailserver: " . $self->mailserver,
+		"To: " . flatten( ",", $header->{To} ),
+		"From: " . $header->{From}, $body
+	);
 
-	say { $self->{logFH} } "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
+	say { $self->{logFH} }
+	  "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
 
 	if ( sendEmail( $header, $body, $self->mailserver, 'smtp' ) ) {
 		$self->recordLastTimes("alerts");
@@ -525,7 +534,7 @@ sub sendAlerts {
 sub sendNotifications {
 	my ( $self, $subject, $upper, $lower ) = @_;
 	$@ = '';
-	return 0 unless @{ $self->notificationEmailsTo };    # no destinations defined
+	return 0 unless @{ $self->notificationEmailsTo };  # no destinations defined
 	return 0 unless $self->notifications;
 	return 0 unless $self->notifying;
 	$self->loadLastTimes("notifications") if $self->minInterval;
@@ -549,10 +558,15 @@ sub sendNotifications {
 
 		#"Content-Type" => "text/html"
 	};
-	my $summary =
-	  join( eol(), "Mailserver: " . $self->mailserver, "To: " . flatten( ",", $header->{To} ), "From: " . $header->{From}, $body );
+	my $summary = join(
+		eol(),
+		"Mailserver: " . $self->mailserver,
+		"To: " . flatten( ",", $header->{To} ),
+		"From: " . $header->{From}, $body
+	);
 
-	say { $self->{logFH} } "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
+	say { $self->{logFH} }
+	  "Sending email: $summary\nSubject: $header->{Subject}\nBody: $body";
 
 	if ( sendEmail( $header, $body, $self->mailserver, 'smtp' ) ) {
 		$self->recordLastTimes("notifications");
